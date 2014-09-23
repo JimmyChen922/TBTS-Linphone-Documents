@@ -107,18 +107,28 @@ Linphone 在使用 `linphone_core_set_provisioning_uri()` 更改 provisioning ur
 Registration
 ------------
 
+並非 Linphone 的 registration (sign in)，而是註冊一個新帳號，
+
 1. `-[WizardViewController onRegisterClick:]`
-2. 會在 callback 中處理 (使用 *XMLRPC*)
+	* 檢查各格式是否正確
+	* 用 XMLRPC 問 server 該帳號是否存在 (`-[WizardViewController checkUserExist:]`)
+	* 在 delegate method `-request:didReceiveResponse:` 內，根據 `@"check_account"` 的回傳值決定是否存在，若不存在則會用 `-[WizardViewController createAccount:password:email:]` 創造新帳號 (一樣是使用 XMLRPC)。
+2. 與 server 溝通，會在 callback 中處理 (使用 *XMLRPC*)
 
 
 Sign In
 -------
 
-1. `-[WizardViewController onSignInClick:]`
-2. `-[WizardViewController addProxyConfig:password:domain:]`
+1. `-[WizardViewController onSignInClick:]`、`-[WizardViewController onSignInExternalClick:]` 和註冊後點選 validate account 按鈕都會進行登入動作：呼叫 `-[WizardViewController addProxyConfig:password:domain:]`
+2. `-[FirstLoginViewController onLoginClick:]`
 
-?
-1. `-[FirstLoginViewController onLoginClick:]`
+
+* `linphone_core_clear_all_auth_info()` 和 `linphone_core_clear_proxy_config()` 將目前註冊資料清除 (Sing out)
+* 創造 **LinphoneAuthInfo**，設定所需要的 username、password、userID 及其他必要訊息
+* 創造 **LinphoneProxyConfig**，設定 identity、domain 及其他參數。
+* `linphone_core_add_auth_info()`、`linphone_core_add_proxy_config()` 和 `linphone_core_set_default_proxy()` 將 **LinphoneAuthInfo** 和 **LinphoneProxyConfig** 加入 LinphoneCore 即會開始註冊。
+
+
 
 
 Make a SIP Phone Call (Call Out)
